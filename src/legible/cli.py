@@ -1,13 +1,16 @@
 """The command line. Five subcommands, each doing one thing.
 
     legible read lesson.txt        restructure and print it
-    legible check lesson.txt       just the meaning check, exit 1 if it fails
+    legible check lesson.txt       what the meaning check is watching
+    legible check a.txt --against b.txt    exit 1 if b.txt lost any of it
     legible stats lesson.txt       just the numbers
     legible evidence               the register, strongest first
     legible serve                  the reading view in a browser
 
-`check` exits non-zero when something was lost, so it can go in a marking
-pipeline or a pre-commit hook over a folder of worksheets.
+`check --against` exits non-zero when something was lost, so it can go in a
+marking pipeline over a folder of worksheets, or in front of whatever
+produced the rewrite. Our own output cannot fail it: the pipeline discards a
+losing rewrite before it ever gets here.
 """
 from __future__ import annotations
 
@@ -93,19 +96,37 @@ def cmd_read(args) -> int:
 
 
 def cmd_check(args) -> int:
-    """The gate. Silent and zero when nothing was lost."""
+    """The gate. Silent and zero when nothing was lost.
+
+    Two modes, and the second is the one that can actually fail.
+
+    Without `--against`, this checks our own output, and our own pipeline
+    fails closed -- it discards a losing rewrite before returning. So this
+    mode reports what was watched and passes. That is worth printing (it
+    says how many items are being guarded) but it is not a gate.
+
+    With `--against`, it checks someone else's rewrite: a teacher's
+    shortened worksheet, or a language model's "simplified" version. Those
+    have no fail-closed pipeline behind them, they are exactly where a
+    negation goes missing, and this is the mode that exits 1.
+    """
     text = _read_input(args.path)
-    doc = restructure.build(text, _settings(args))
     name = args.path or "stdin"
 
-    if doc.safe:
+    if args.against:
+        check = facts.retention(text, _read_input(args.against))
+        name = "%s -> %s" % (name, args.against)
+    else:
+        check = restructure.build(text, _settings(args)).retention
+
+    if check.ok:
         if not args.quiet:
-            print("%s: %s" % (name, doc.retention.summary()))
+            print("%s: %s" % (name, check.summary()))
         return 0
 
-    print("%s: MEANING CHANGED -- %s" % (name, doc.retention.summary()),
+    print("%s: MEANING CHANGED -- %s" % (name, check.summary()),
           file=sys.stderr)
-    for kind, items in doc.retention.lost.items():
+    for kind, items in check.lost.items():
         for item in items:
             print("  lost %-9s %-20s %s" % (kind, item, facts.KIND_WHY[kind]),
                   file=sys.stderr)
@@ -196,6 +217,9 @@ def build_parser() -> argparse.ArgumentParser:
         "check",
         help="exit 1 if any number, name, negation or hedge was lost")
     _add_common(check)
+    check.add_argument("--against", metavar="FILE",
+                       help="check this rewrite of the file instead of ours "
+                            "-- a teacher's, or a language model's")
     check.add_argument("-q", "--quiet", action="store_true")
     check.set_defaults(func=cmd_check)
 

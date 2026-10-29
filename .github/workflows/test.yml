@@ -39,11 +39,24 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -e .
-      - name: Every corpus file passes the gate
+      - name: The fail-closed fallback held on every corpus file
+        # Not a gate, and labelled so. Our pipeline discards a losing
+        # rewrite before `check` sees it, so this step can only go red if
+        # that fallback itself broke -- which is the one bug this program
+        # cannot have. Worth running for exactly that reason, and worth not
+        # mistaking for proof that the check works.
         run: |
           for f in corpus/*.txt; do
             legible check "$f" --rewrite
           done
+      - name: A rewrite we did not produce must fail the gate
+        # This is the gate: text from outside the pipeline, which has no
+        # fallback behind it. `! cmd` so the step passes when check exits 1.
+        run: |
+          printf 'Antibiotics do not work against viruses. The rate may fall below 10 degrees Celsius.\n' > lesson.txt
+          printf 'Antibiotics work against viruses. The rate falls below 10 degrees Celsius.\n' > simplified.txt
+          ! legible check lesson.txt --against simplified.txt
+          legible check lesson.txt --against lesson.txt
       - name: A damaged rewrite must fail the gate
         # Proves the gate can fail. A green CI that cannot go red is theatre.
         run: python tools/gate_demo.py

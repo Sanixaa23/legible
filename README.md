@@ -43,20 +43,40 @@ deterministic, and it still keeps every token: when it breaks a sentence at
 *and*, *but* or *so*, the connective starts the new sentence instead of
 being dropped.
 
-That leaves exactly one place meaning can be lost, and it is guarded:
+That leaves exactly one place meaning can be lost, and it is guarded.
+
+The same check runs as a command, and it is worth pointing at text this
+program did not produce — a shortened worksheet, or whatever a language
+model returned when someone asked it to simplify a lesson:
 
 ```
-$ legible check lesson.txt
-lesson.txt: all 27 checked items kept
+$ cat lesson.txt
+Antibiotics do not work against viruses. The rate may fall below 10 degrees Celsius.
+$ cat simplified.txt
+Antibiotics work against viruses. The rate falls below 10 degrees Celsius.
 
-$ legible check damaged.txt
-damaged.txt: MEANING CHANGED -- lost 3 of 11 (negation: not; modality: may)
-  lost negation  not    Losing a negation reverses the claim.
-  lost modality  may    'May cause' and 'causes' are different claims.
+$ legible check lesson.txt --against simplified.txt
+lesson.txt -> simplified.txt: MEANING CHANGED -- lost 2 of 5 (negation: not; modality: may)
+  lost negation  not    Losing a negation reverses the claim. This is the most dangerous single failure.
+  lost modality  may    'May cause' and 'causes' are different claims. Flattening one overstates the text.
 ```
 
-Exit code 1, so it works in a marking pipeline or over a folder of
-worksheets.
+Exit code 1, so it works in a marking pipeline, over a folder of
+worksheets, or in front of whatever produced the rewrite.
+
+Without `--against` it checks our own output and reports what it watched:
+
+```
+$ legible check corpus/01_biology_photosynthesis.txt
+corpus/01_biology_photosynthesis.txt: all 15 checked items kept
+```
+
+That one cannot fail, and the reason is the design rather than a weak
+check: the pipeline discards a losing rewrite before anything downstream
+sees it. `test_cli.py` asserts both halves — that `--against` catches the
+transcript above, and that every corpus file passes the plain form through
+both tiers. If the plain form ever exits 1, the fail-closed fallback has
+broken.
 
 ## Measured fact retention
 
@@ -133,7 +153,8 @@ legible serve                      # the reading view, at 127.0.0.1:8000
 legible read lesson.txt            # restructured, in the terminal
 legible read lesson.txt --rewrite  # also split sentences over 25 words
 legible read lesson.txt --html     # the whole page, to a file
-legible check lesson.txt           # exit 1 if anything was lost
+legible check lesson.txt           # what the meaning check is watching
+legible check a.txt --against b.txt  # exit 1 if b.txt lost any of it
 legible stats lesson.txt           # the numbers only
 legible evidence                   # what each setting rests on
 legible read lesson.pdf            # needs: pip install "legible[pdf]"
@@ -210,6 +231,16 @@ watching it be wrong. Each is now a test.
    imported `render.py`. A module no test imports is a module nobody is
    checking.
 
+   The same lesson arrived a second time, in a worse shape, right after the
+   first public push: nothing imported `cli.py` either, and so nobody had
+   noticed that `legible check` could not fail. It ran our own pipeline, our
+   pipeline discards a losing rewrite before returning, and the failing
+   branch was therefore unreachable — while this README printed a transcript
+   of it. The fix was the feature that was missing: `--against`, which
+   checks a rewrite we did not produce, and is the form that can exit 1. A
+   branch no test reaches is a branch nobody is checking, and a module with
+   a reachable half and an unreachable half still passes every test you have.
+
 7. **Proper nouns are not hard words.** A glossary entry for *Iceland*
    helps nobody, while *photosynthesis* — capitalised only because it opens
    the sentence — is exactly the word to flag. The same position-based name
@@ -233,7 +264,7 @@ polish:
 ## Tests
 
 ```bash
-python -m pytest tests/ -q        # 99 tests
+python -m pytest tests/ -q        # 107 tests
 python tests/test_retention.py    # the retention table above
 python tools/gate_demo.py         # the check, shown catching four lies
 ```

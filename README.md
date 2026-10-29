@@ -12,6 +12,24 @@ legible serve
 
 No runtime dependencies. Works offline. The text never leaves the machine.
 
+### The one-minute version — with narration
+
+[![legible: a wall of sixty words breaking into one clause per line](docs/short-preview.gif)](https://github.com/Sanixaa23/legible/blob/main/docs/legible-short.mp4)
+
+### ▶ [Watch the 63 seconds, with narration](https://github.com/Sanixaa23/legible/blob/main/docs/legible-short.mp4)
+
+The moving image above is a **silent 11-second preview** — it is a GIF, and a GIF
+cannot carry audio. The full video is narrated; click the link above and GitHub
+plays it with sound.
+
+Every number in it comes out of `legible` at render time rather than from a
+script: `tools/viral_render.py` calls `restructure.build()` on the sample lesson
+and draws what comes back, so the sixty words, the twenty-eight and the
+thirteen-of-thirteen cannot drift from what the tool actually does. The
+narration is synthetic — ElevenLabs, voice "Jessica", model `eleven_v4` — and
+the takes are committed in `docs/narration/`, because each scene takes its
+length from its own line and a clone needs them to render the same cut.
+
 ---
 
 ## The problem with tools that make text easier

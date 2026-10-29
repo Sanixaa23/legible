@@ -1,0 +1,5 @@
+A force is a push or a pull, and although we cannot see a force directly, we can see what it does: it may change an object's speed, it may change the direction the object is moving in, or it may change the object's shape.
+
+Newton's first law states that an object will not change its motion unless a resultant force acts on it. This is sometimes misread as a claim that moving objects naturally slow down. They do not. A ball rolling across a floor slows because friction acts on it, and in the near-absence of friction, as in space, the ball would keep its speed almost indefinitely.
+
+The resultant force is the single force that would have the same effect as all the forces acting together. When the resultant force on an object is zero, the object is in equilibrium, which does not mean it is stationary; it means its motion is not changing.

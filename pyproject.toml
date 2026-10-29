@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legible"
+version = "0.1.0"
+description = "Restructures lesson material for dyslexic and ADHD readers, and proves it kept the meaning"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+keywords = ["accessibility", "dyslexia", "adhd", "education", "readability"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Education",
+    "Topic :: Adaptive Technologies",
+]
+# No runtime dependencies. The metrics, the transformations and the retention
+# check are all stdlib, so the thing a teacher installs cannot break on a
+# wheel that does not build.
+dependencies = []
+
+[project.optional-dependencies]
+# Only for reading PDFs; plain text and pasted text need nothing.
+pdf = ["pypdf>=4.0"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+legible = "legible.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+legible = ["assets/*.css", "assets/*.js"]

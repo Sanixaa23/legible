@@ -1,0 +1,5 @@
+Photosynthesis is the process by which green plants, algae and some bacteria convert light energy into the chemical energy stored in sugars, and because the reaction depends on a pigment called chlorophyll, which absorbs light most strongly in the blue and the red parts of the visible spectrum while reflecting green, the leaves of most plants appear green to us.
+
+The reaction takes place in the chloroplasts, organelles that are found in large numbers in the cells of the leaf, and it has two stages: the light-dependent stage, which splits water molecules and releases oxygen as a waste product, and the light-independent stage, which uses the products of the first stage to build glucose from carbon dioxide.
+
+Photosynthesis does not continue at the same rate in all conditions. The rate may fall sharply below 10 degrees Celsius, and it rarely increases further once light intensity passes a certain point, because some other factor, usually the supply of carbon dioxide, has become the limiting one.

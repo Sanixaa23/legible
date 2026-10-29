@@ -1,0 +1,80 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  suite:
+    name: tests (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Tests
+        run: python -m pytest tests/ -q
+      - name: Fact retention table
+        # Printed in the log on every run, and non-zero if a single number,
+        # name, negation or hedge was lost anywhere in the corpus.
+        run: python tests/test_retention.py
+
+  meaning-gate:
+    name: the meaning check as a gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e .
+      - name: Every corpus file passes the gate
+        run: |
+          for f in corpus/*.txt; do
+            legible check "$f" --rewrite
+          done
+      - name: A damaged rewrite must fail the gate
+        # Proves the gate can fail. A green CI that cannot go red is theatre.
+        run: python tools/gate_demo.py
+
+  reading-view:
+    name: the reading view renders and serves
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -e .
+      - name: Render the page offline
+        run: legible read corpus/01_biology_photosynthesis.txt --html > /tmp/page.html
+      - name: The page loads nothing from the network
+        run: |
+          ! grep -Eo 'https?://[^"'\'' )]+' /tmp/page.html || \
+            (echo "the page references an external URL" && exit 1)
+      - name: Serve it and ask for every route
+        run: |
+          legible serve --port 8111 &
+          for i in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:8111/healthz && break
+            sleep 0.2
+          done
+          curl -fsS http://127.0.0.1:8111/ > /dev/null
+          curl -fsS http://127.0.0.1:8111/evidence > /dev/null
+          curl -fsS http://127.0.0.1:8111/api/evidence | python -c "import json,sys; d=json.load(sys.stdin); print(len(d['findings']), 'findings')"
+          curl -fsS -X POST http://127.0.0.1:8111/api/restructure \
+            -H 'Content-Type: application/json' \
+            -d '{"text":"It may not exceed 4.5 kg, and Dr. Smith recorded that in Iceland during the second week of the trial.","settings":{"split_sentences":true}}' \
+            | python -c "import json,sys; d=json.load(sys.stdin); assert d['safe'], d; print('api retention', d['retention']['rate'])"
+          curl -fsS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8111/nope | grep 404

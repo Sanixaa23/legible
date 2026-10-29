@@ -1,0 +1,5 @@
+In a chemical reaction the atoms present at the start are the same atoms present at the end, rearranged into different substances, which is why the total mass does not change. This is the law of conservation of mass, and it holds even when a reaction appears to lose mass, because in those cases a gas has usually escaped.
+
+Not all reactions release energy. A reaction that transfers energy to its surroundings is exothermic, and the temperature of the surroundings rises; a reaction that takes energy in is endothermic, and the temperature falls. Dissolving ammonium nitrate in water is endothermic, which is why instant cold packs can contain it.
+
+The rate of a reaction can be increased by raising the temperature, by increasing the concentration or the pressure, by using smaller pieces of a solid reactant, or by adding a catalyst, and a catalyst is not used up in the reaction, so a small amount may be used many times.

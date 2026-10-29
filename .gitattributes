@@ -1,0 +1,6 @@
+# Everything is LF in the repository. The readability metrics count line
+# lengths and paragraph breaks, so a CRLF conversion on Windows changes the
+# numbers the tests assert.
+* text=auto eol=lf
+*.png binary
+*.gif binary

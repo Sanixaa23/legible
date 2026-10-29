@@ -1,0 +1,7 @@
+Water has three states. It can be a solid, a liquid or a gas.
+
+Ice is water in its solid state. Ice forms at 0 degrees Celsius.
+
+Steam is water as a gas. Water boils at 100 degrees Celsius.
+
+Heat changes the state of water. Cooling changes it back.

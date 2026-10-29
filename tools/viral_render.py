@@ -385,10 +385,18 @@ def clip_path(name: str) -> Optional[str]:
 
 
 def durations() -> List[float]:
+    """One timeline for both halves, snapped to whole frames.
+
+    The picture can only change on a frame boundary, so the audio has to be
+    laid out on the same grid. Laying it out on the unrounded seconds instead
+    starts every scene a fraction early and the error accumulates: measured at
+    0.28s by scene six, and growing.
+    """
     out = []
     for sc in SCENES:
         path = clip_path(sc.clip)
-        out.append(round(audio_seconds(path) + PAD, 2) if path else sc.fallback)
+        raw = audio_seconds(path) + PAD if path else sc.fallback
+        out.append(max(1, int(round(raw * FPS))) / FPS)
     return out
 
 
@@ -403,13 +411,16 @@ def build_audio(secs: Sequence[float], wav: str) -> bool:
     for i, (sc, dur, clip) in enumerate(zip(SCENES, secs, clips)):
         path = os.path.join(work, "%02d.wav" % i)
         if clip:
+            # whole_dur, not pad_dur: the part has to be exactly as long as
+            # the scene it plays under, or the next one starts early.
             subprocess.run([ffmpeg(), "-y", "-v", "error", "-i", clip,
-                            "-af", "apad=pad_dur=%.3f" % PAD,
+                            "-af", "apad=whole_dur=%.6f" % dur,
+                            "-t", "%.6f" % dur,
                             "-ar", "44100", "-ac", "2", path], check=True)
         else:
             subprocess.run([ffmpeg(), "-y", "-v", "error", "-f", "lavfi",
                             "-i", "anullsrc=r=44100:cl=stereo",
-                            "-t", "%.3f" % dur, path], check=True)
+                            "-t", "%.6f" % dur, path], check=True)
         parts.append(path)
     listing = os.path.join(work, "list.txt")
     with open(listing, "w", encoding="utf-8") as f:

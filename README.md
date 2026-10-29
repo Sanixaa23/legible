@@ -14,13 +14,15 @@ No runtime dependencies. Works offline. The text never leaves the machine.
 
 ### The one-minute version — with narration
 
-[![legible: a wall of sixty words breaking into one clause per line](docs/short-preview.gif)](https://github.com/Sanixaa23/legible/blob/main/docs/legible-short.mp4)
+[![legible: a wall of sixty words breaking into one clause per line](docs/short-preview.gif)](https://raw.githubusercontent.com/Sanixaa23/legible/main/docs/legible-short.mp4)
 
-### ▶ [Watch the 63 seconds, with narration](https://github.com/Sanixaa23/legible/blob/main/docs/legible-short.mp4)
+### ▶ [Download the 63 seconds, with narration](https://raw.githubusercontent.com/Sanixaa23/legible/main/docs/legible-short.mp4)
 
 The moving image above is a **silent 11-second preview** — it is a GIF, and a GIF
-cannot carry audio. The full video is narrated; click the link above and GitHub
-plays it with sound.
+cannot carry audio. The full video is narrated, but **GitHub will not play it in
+the browser**: it refuses to preview a blob this size, and it serves the raw file
+as `application/octet-stream` with `nosniff`, so the link above downloads the mp4
+rather than playing it. Open it in any player and the narration is there.
 
 Every number in it comes out of `legible` at render time rather than from a
 script: `tools/viral_render.py` calls `restructure.build()` on the sample lesson
